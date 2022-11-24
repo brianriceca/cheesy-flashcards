@@ -40,10 +40,12 @@ layout = [  [sg.Text(f"flashcards {infile}", key='-TITLE-')],
             [sg.Text('', size=(80,1), key='-FEEDBACK2-')] ]
 
 if nquizitems is not None:
-  layout.append( [ sg.Text("", size=(12,1), 
+  choiceline = [ sg.Text("", size=(12,1), 
                                 key=f"-CHOICE{i}-", 
                                 background_color=sg.theme_input_background_color())
-                            for i in range(nquizitems) ] )
+                            for i in range(nquizitems) ]
+  choiceline.insert(0, sg.Text(" ",size=(1,1),key="-CHECKED-"))
+  layout.append(choiceline)
   layout.append( [sg.Text('', size=(80,1), key='-FEEDBACK3-')] )
 
 layout.append( [sg.Button('Prev'),sg.Button('Flip'),sg.Button('Next'),sg.Button('Quit')] )
@@ -59,11 +61,11 @@ gotthemright = [ False for x in prompts ]
 
 def update_score():
   if (nAttempted := attempted.count(True)) == 0:
-    score = 1.0
+    window['-FEEDBACK-'].update(f'Score n/a; completed 0/{len(prompts)} (0%)')
   else:
     score = gotthemright.count(True) / nAttempted
-  completion = nAttempted / len(prompts)
-  window['-FEEDBACK-'].update(f'Score {(score*100):.0f}%; completed {nAttempted}/{len(prompts)} ({(completion*100):.0f}%)')
+    completion = nAttempted / len(prompts)
+    window['-FEEDBACK-'].update(f'Score {(score*100):.0f}%; completed {nAttempted}/{len(prompts)} ({(completion*100):.0f}%)')
 
 def refresh_quiz_row(n):
   distracters = population.copy()
@@ -75,6 +77,10 @@ def refresh_quiz_row(n):
   for i in range(nquizitems):
     window[f"-CHOICE{i}-"].update(f"{i+1}:{distracters[i]}",background_color=sg.theme_input_background_color())
   update_score()
+  if gotthemright[n]:
+    window['-CHECKED-'].update("x")
+  else:
+    window['-CHECKED-'].update(" ")
   return distracters.index(flashcards[prompts[n]])
 
 if nquizitems is not None:
