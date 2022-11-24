@@ -34,8 +34,9 @@ population = list(flashcards.values())
 random.shuffle(prompts)
 
 layout = [  [sg.Text(f"flashcards {infile}", key='-TITLE-')],
-            [sg.Text('', size=(80,1), key='-FEEDBACK-')],
-            [sg.Text(f"{prompts[0]}", size=(15,1), key='-CARDTEXT-',font=('fixed',24),background_color = colorbg,text_color = colorfg)],
+            [sg.Text('', size=(80,1), justification='right', key='-FEEDBACK-')],
+            [sg.Text(f"{prompts[0]}", size=(15,1), key='-CARDTEXT-',
+                   font=('fixed',24),background_color = colorbg,text_color = colorfg)],
             [sg.Text('', size=(80,1), key='-FEEDBACK2-')] ]
 
 if nquizitems is not None:
@@ -53,6 +54,8 @@ window = sg.Window('Cheesy flashcards', layout, resizable=True,
 
 distracters = ""
 rightanswer = -1
+attempted = [ False for x in prompts ]
+gotthemright = [ False for x in prompts ] 
 
 def refresh_quiz_row(n):
   distracters = population
@@ -63,6 +66,12 @@ def refresh_quiz_row(n):
   random.shuffle(distracters)
   for i in range(nquizitems):
     window[f"-CHOICE{i}-"].update(f"{i+1}:{distracters[i]}",background_color=sg.theme_input_background_color())
+    if (nAttempted := attempted.count(True)) == 0:
+      score = 1.0
+    else:
+      score = gotthemright.count(True) / nAttempted
+    completion = nAttempted / len(prompts)
+  window['-FEEDBACK-'].update(f'Score {(score*100):.1f}; completed {(completion*100):.1f}')
   return distracters.index(flashcards[prompts[n]])
 
 if nquizitems is not None:
@@ -73,7 +82,7 @@ current_side = 0
 
 while True:
   event, values = window.Read()
-  window['-FEEDBACK2-'].update(f"event was {event}, ord = {ord(event[0])}")
+#  window['-FEEDBACK2-'].update(f"event was {event}, ord = {ord(event[0])}")
 
 #---------- quit
 
@@ -121,7 +130,10 @@ while True:
     responsenumber = ord(event[0]) - ord("1")
     window['-FEEDBACK2-'].update(f"I got event {event}, rightanswer = {rightanswer}")
     if responsenumber == rightanswer:
+      if not attempted[pointer]:
+        gotthemright[pointer] = True
       window[f"-CHOICE{responsenumber}-"].update(background_color='green')
     else:
       window[f"-CHOICE{responsenumber}-"].update(background_color='red')
+    attempted[pointer] = True
   
