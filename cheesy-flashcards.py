@@ -57,8 +57,16 @@ rightanswer = -1
 attempted = [ False for x in prompts ]
 gotthemright = [ False for x in prompts ] 
 
+def update_score():
+  if (nAttempted := attempted.count(True)) == 0:
+    score = 1.0
+  else:
+    score = gotthemright.count(True) / nAttempted
+  completion = nAttempted / len(prompts)
+  window['-FEEDBACK-'].update(f'Score {(score*100):.0f}%; completed {nAttempted}/{len(prompts)} ({(completion*100):.0f}%)')
+
 def refresh_quiz_row(n):
-  distracters = population
+  distracters = population.copy()
   distracters.remove(therightresponse := flashcards[prompts[n]])
   samples = random.sample(distracters, nquizitems-1)
   samples.append(therightresponse)
@@ -66,12 +74,7 @@ def refresh_quiz_row(n):
   random.shuffle(distracters)
   for i in range(nquizitems):
     window[f"-CHOICE{i}-"].update(f"{i+1}:{distracters[i]}",background_color=sg.theme_input_background_color())
-    if (nAttempted := attempted.count(True)) == 0:
-      score = 1.0
-    else:
-      score = gotthemright.count(True) / nAttempted
-    completion = nAttempted / len(prompts)
-  window['-FEEDBACK-'].update(f'Score {(score*100):.1f}; completed {(completion*100):.1f}')
+  update_score()
   return distracters.index(flashcards[prompts[n]])
 
 if nquizitems is not None:
@@ -128,7 +131,7 @@ while True:
 #---------- number key
   if nquizitems is not None and event[0] in quizevents:
     responsenumber = ord(event[0]) - ord("1")
-    window['-FEEDBACK2-'].update(f"I got event {event}, rightanswer = {rightanswer}")
+#    window['-FEEDBACK2-'].update(f"I got event {event}, rightanswer = {rightanswer}")
     if responsenumber == rightanswer:
       if not attempted[pointer]:
         gotthemright[pointer] = True
@@ -136,4 +139,5 @@ while True:
     else:
       window[f"-CHOICE{responsenumber}-"].update(background_color='red')
     attempted[pointer] = True
+    update_score()
   
