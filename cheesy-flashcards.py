@@ -15,20 +15,19 @@ colorbg = 'blue'
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-q', '--quiz', type=int, choices=range(1, 5), default=argparse.SUPPRESS)
+parser.add_argument('-n', '--number', type=int, default=-1)
 parser.add_argument('-i', '--invert', action='store_true')
 parser.add_argument('infile',type=argparse.FileType('r', encoding='latin-1'))
 
 args = parser.parse_args()
 infile = args.infile.name
 
-
-
-nquizitems = None
+nchoices = None
 if hasattr(args,'quiz'):
-  nquizitems = int(args.quiz)
-  if nquizitems < 2:
+  nchoices = int(args.quiz)
+  if nchoices < 2:
     raise ValueError("gotta have at least 2 choices")
-  quizevents = [chr(x) for x in range(ord('1'), ord(chr(ord('1')+nquizitems)))]
+  quizevents = [chr(x) for x in range(ord('1'), ord(chr(ord('1')+nchoices)))]
  
 with open(infile,encoding='utf-8') as f:
   flashcards = json.load(f)
@@ -38,22 +37,35 @@ if args.invert:
     raise ValueError('to invert, values must be unique')
   inverted = {v: k for k, v in flashcards.items()}
   flashcards = inverted
-  print(flashcards)
 
-prompts = list(flashcards.keys())
-population = list(flashcards.values())
-random.shuffle(prompts)
+if args.number == 0:
+  raise ValueError("I can't make a quiz with 0 items")
+
+if args.number != -1:
+  nquestions = args.number # thanks to random.sample,
+                           #  even works if number > nquestions
+  prompts = random.sample(list(flashcards.keys()),nquestions)
+else:
+  prompts = list(flashcards.keys())
+  nquestions = len(prompts)
+  random.shuffle(prompts)
+
+population = list(flashcards.values()) # not every distracter will be the 
+                                       # correct answer to something else 
+                                       # in the chosen quiz items
+
+
 layout = [  [sg.Text(f"flashcards {infile}", key='-TITLE-')],
             [sg.Text('', size=(80,1), justification='right', key='-FEEDBACK-')],
             [sg.Text(f"{prompts[0]}", size=(15,1), key='-CARDTEXT-',
                    font=('fixed',24),background_color = colorbg,text_color = colorfg)],
             [sg.Text('', size=(80,1), key='-FEEDBACK2-')] ]
 
-if nquizitems is not None:
+if nchoices is not None:
   choiceline = [ sg.Text("", size=(12,1), 
                                 key=f"-CHOICE{i}-", 
                                 background_color=sg.theme_input_background_color())
-                            for i in range(nquizitems) ]
+                            for i in range(nchoices) ]
   choiceline.insert(0, sg.Text(" ",size=(1,1),key="-CHECKED-"))
   layout.append(choiceline)
   layout.append( [sg.Text('', size=(80,1), key='-FEEDBACK3-')] )
@@ -71,20 +83,20 @@ gotthemright = [ False for x in prompts ]
 
 def update_score():
   if (nAttempted := attempted.count(True)) == 0:
-    window['-FEEDBACK-'].update(f'Score n/a; completed 0/{len(prompts)} (0%)')
+    window['-FEEDBACK-'].update(f'Score n/a; completed 0/{nquestions} (0%)')
   else:
     score = gotthemright.count(True) / nAttempted
-    completion = nAttempted / len(prompts)
-    window['-FEEDBACK-'].update(f'Score {(score*100):.0f}%; completed {nAttempted}/{len(prompts)} ({(completion*100):.0f}%)')
+    completion = nAttempted / nquestions
+    window['-FEEDBACK-'].update(f'Score {(score*100):.0f}%; completed {nAttempted}/{nquestions} ({(completion*100):.0f}%)')
 
 def refresh_quiz_row(n):
   distracters = population.copy()
   distracters.remove(therightresponse := flashcards[prompts[n]])
-  samples = random.sample(distracters, nquizitems-1)
+  samples = random.sample(distracters, nchoices-1)
   samples.append(therightresponse)
   distracters = samples
   random.shuffle(distracters)
-  for i in range(nquizitems):
+  for i in range(nchoices):
     window[f"-CHOICE{i}-"].update(f"{i+1}:{distracters[i]}",background_color=sg.theme_input_background_color())
   update_score()
   if gotthemright[n]:
@@ -93,7 +105,7 @@ def refresh_quiz_row(n):
     window['-CHECKED-'].update(" ")
   return distracters.index(flashcards[prompts[n]])
 
-if nquizitems is not None:
+if nchoices is not None:
   rightanswer = refresh_quiz_row(0)
 
 pointer = 0
@@ -129,7 +141,7 @@ while True:
     else:
       pointer -= 1
     window['-CARDTEXT-'].update(f"{prompts[pointer]}",background_color = colorbg,text_color = colorfg)
-    if nquizitems is not None:
+    if nchoices is not None:
       rightanswer = refresh_quiz_row(pointer)
 
 #---------- next
@@ -141,11 +153,11 @@ while True:
     else:
       pointer += 1
     window['-CARDTEXT-'].update(f"{prompts[pointer]}",background_color = colorbg,text_color = colorfg)
-    if nquizitems is not None:
+    if nchoices is not None:
       rightanswer = refresh_quiz_row(pointer)
 
 #---------- number key
-  if nquizitems is not None and event[0] in quizevents:
+  if nchoices is not None and event[0] in quizevents:
     responsenumber = ord(event[0]) - ord("1")
 #    window['-FEEDBACK2-'].update(f"I got event {event}, rightanswer = {rightanswer}")
     if responsenumber == rightanswer:
