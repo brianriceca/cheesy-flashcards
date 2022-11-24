@@ -32,9 +32,6 @@ if hasattr(args,'quiz'):
  
 with open(infile,encoding='utf-8') as f:
   flashcards = json.load(f)
-prompts = list(flashcards.keys())
-population = list(flashcards.values())
-random.shuffle(prompts)
 
 if args.invert:
   if len(list(flashcards.values())) != len(set(flashcards.values())):
@@ -43,6 +40,9 @@ if args.invert:
   flashcards = inverted
   print(flashcards)
 
+prompts = list(flashcards.keys())
+population = list(flashcards.values())
+random.shuffle(prompts)
 layout = [  [sg.Text(f"flashcards {infile}", key='-TITLE-')],
             [sg.Text('', size=(80,1), justification='right', key='-FEEDBACK-')],
             [sg.Text(f"{prompts[0]}", size=(15,1), key='-CARDTEXT-',
