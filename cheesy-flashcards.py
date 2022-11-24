@@ -15,10 +15,13 @@ colorbg = 'blue'
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-q', '--quiz', type=int, choices=range(1, 5), default=argparse.SUPPRESS)
+parser.add_argument('-i', '--invert', action='store_true')
 parser.add_argument('infile',type=argparse.FileType('r', encoding='latin-1'))
 
 args = parser.parse_args()
 infile = args.infile.name
+
+
 
 nquizitems = None
 if hasattr(args,'quiz'):
@@ -32,6 +35,13 @@ with open(infile,encoding='utf-8') as f:
 prompts = list(flashcards.keys())
 population = list(flashcards.values())
 random.shuffle(prompts)
+
+if args.invert:
+  if len(list(flashcards.values())) != len(set(flashcards.values())):
+    raise ValueError('to invert, values must be unique')
+  inverted = {v: k for k, v in flashcards.items()}
+  flashcards = inverted
+  print(flashcards)
 
 layout = [  [sg.Text(f"flashcards {infile}", key='-TITLE-')],
             [sg.Text('', size=(80,1), justification='right', key='-FEEDBACK-')],
