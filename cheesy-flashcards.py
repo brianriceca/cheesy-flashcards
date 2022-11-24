@@ -63,7 +63,7 @@ def refresh_quiz_row(n):
   random.shuffle(distracters)
   for i in range(nquizitems):
     window[f"-CHOICE{i}-"].update(f"{i+1}:{distracters[i]}",background_color=sg.theme_input_background_color())
-  return distracters.index(flashcards[prompts[0]])
+  return distracters.index(flashcards[prompts[n]])
 
 if nquizitems is not None:
   rightanswer = refresh_quiz_row(0)
