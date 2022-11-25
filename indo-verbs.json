@@ -15,5 +15,8 @@
   "pulang": "go home",
   "setuju": "agree",
   "tidur": "sleep",
-  "tinggal": "live/stay"
+  "tinggal": "live/stay",
+  "pesan": "order",
+  "minta": "ask for",
+  "selesai": "finish"
 }
