@@ -14,7 +14,7 @@ colorfg = 'pink'
 colorbg = 'blue'
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-q', '--quiz', type=int, choices=range(1, 5), default=argparse.SUPPRESS)
+parser.add_argument('-q', '--quiz', type=int, choices=range(1, 6), default=argparse.SUPPRESS)
 parser.add_argument('-n', '--number', type=int, default=-1)
 parser.add_argument('-i', '--invert', action='store_true')
 parser.add_argument('infile',type=argparse.FileType('r', encoding='latin-1'))
@@ -22,12 +22,17 @@ parser.add_argument('infile',type=argparse.FileType('r', encoding='latin-1'))
 args = parser.parse_args()
 infile = args.infile.name
 
+mytitle = infile + ' ' 
+
 nchoices = None
 if hasattr(args,'quiz'):
+  mytitle += 'quiz '
   nchoices = int(args.quiz)
   if nchoices < 2:
     raise ValueError("gotta have at least 2 choices")
   quizevents = [chr(x) for x in range(ord('1'), ord(chr(ord('1')+nchoices)))]
+else:
+  mytitle += 'flashcards '
  
 with open(infile,encoding='utf-8') as f:
   flashcards = json.load(f)
@@ -37,6 +42,7 @@ if args.invert:
     raise ValueError('to invert, values must be unique')
   inverted = {v: k for k, v in flashcards.items()}
   flashcards = inverted
+  mytitle += '(inverted) '
 
 if args.number == 0:
   raise ValueError("I can't make a quiz with 0 items")
@@ -54,8 +60,10 @@ population = list(flashcards.values()) # not every distracter will be the
                                        # correct answer to something else 
                                        # in the chosen quiz items
 
+mytitle += f'{nquestions} qs out of {len(flashcards)} entries'
 
-layout = [  [sg.Text(f"flashcards {infile}", key='-TITLE-')],
+
+layout = [  [sg.Text(mytitle, key='-TITLE-')],
             [sg.Text('', size=(80,1), justification='right', key='-FEEDBACK-')],
             [sg.Text(f"{prompts[0]}", size=(15,1), key='-CARDTEXT-',
                    font=('fixed',24),background_color = colorbg,text_color = colorfg)],
@@ -72,7 +80,7 @@ if nchoices is not None:
 
 layout.append( [sg.Button('Prev'),sg.Button('Flip'),sg.Button('Next'),sg.Button('Quit')] )
 
-window = sg.Window('Cheesy flashcards', layout, resizable=True,
+window = sg.Window(mytitle, layout, resizable=True,
              margins=(50, 50), return_keyboard_events=True, use_default_focus=False,
              finalize=True)
 
