@@ -28,6 +28,10 @@ def check_event(s,l):
       return True
   return False
 
+def compare_text(a,b):
+  # TODO: if b is a list of choices like "go/leave", accept either "go" or "leave"
+  return a == b
+
 parser = argparse.ArgumentParser()
 parser.add_argument('-q', '--quiz', type=int, choices=[0, 3, 4, 5], default=argparse.SUPPRESS)
 parser.add_argument('-n', '--number', type=int, default=ALL)
@@ -88,16 +92,11 @@ prev_events = [ 'Prev', 'Left:']
 flip_events = [ 'Flip', ' ', 'Space:' ]
 quit_events = [ 'Quit', 'Escape:', sg.WIN_CLOSED ]
 keyboard_events = False
-
 fill_in_the_blank = False
 multiple_choice = False
 if nchoices is not None:
   if nchoices == 0:
     fill_in_the_blank = True
-    next_events.append('n')
-    prev_events.append('p')
-    flip_events.append('f')
-    quit_events.append('q')
   else:
     multiple_choice = True
 
@@ -110,6 +109,10 @@ elif multiple_choice:
                                 background_color=sg.theme_input_background_color())
                               for i in range(nchoices) ]
   choiceline.insert(0, sg.Text(" ",size=(1,1),key="-CHECKED-"))
+  next_events.append('n')
+  prev_events.append('p')
+  flip_events.append('f')
+  quit_events.append('q')
   keyboard_events = True
   layout.append(choiceline)
 
@@ -205,7 +208,7 @@ while True:
 #---------- text box
 
     response = values['-INPUTTEXT-'].strip().lower()
-    if response == flashcards[frontsides[itemnumber]]:
+    if compare_text(response,flashcards[frontsides[itemnumber]]):
       window['-FEEDBACK3-'].update(f"{response} is correct")
       if not attempted[itemnumber]:
         gotthemright[itemnumber] = True
