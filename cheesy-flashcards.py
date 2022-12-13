@@ -29,8 +29,12 @@ def check_event(s,l):
   return False
 
 def compare_text(a,b):
-  # TODO: if b is a list of choices like "go/leave", accept either "go" or "leave"
-  return a == b
+  print(f'a is {a}, b is {b}')
+  if b.find('/') == -1:
+    return a == b
+  else:
+    correctlist = b.split('/')
+    return (a in correctlist)
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-q', '--quiz', type=int, choices=[0, 3, 4, 5], default=argparse.SUPPRESS)
@@ -217,12 +221,12 @@ while True:
     attempted[itemnumber] = True
     if gotthemright[itemnumber]:
       window['-INPUTTEXT-'].update('')
+      current_side = 0
+      if itemnumber == len(frontsides)-1:
+        itemnumber = 0
+      else:
+        itemnumber += 1
     update_score()
-    current_side = 0
-    if itemnumber == len(frontsides)-1:
-      itemnumber = 0
-    else:
-      itemnumber += 1
     window['-CARDTEXT-'].update(f"{frontsides[itemnumber]}",background_color = colorbg,text_color = colorfg)
 
   elif multiple_choice and check_event(event, quizevents):
