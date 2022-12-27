@@ -17,14 +17,10 @@ ALL = -1
 def check_event(s,l):
   if l is None:
     return False
+  if ':' in s:
+    s = s[:s.index(':')]
   for a in l:
-    if a is None:
-      if s is None:
-        return True
-    elif ':' in a:
-      if s[:a.index(':')] == a[:a.index(':')]:
-        return True
-    elif s == a:
+    if s == a:
       return True
   return False
 
