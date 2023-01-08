@@ -158,7 +158,7 @@ current_side = 0
 
 while True:
   event, values = window.Read()
-  window['-FEEDBACK2-'].update(f"event was {event}, ord = {ord(event[0])}")
+#  window['-FEEDBACK2-'].update(f"event was {event}, ord = {ord(event[0])}")
 
 #---------- quit
 
@@ -230,7 +230,7 @@ while True:
 #---------- number key
 
     responsenumber = ord(event[0]) - ord("1")
-    window['-FEEDBACK2-'].update(f"I got event {event}, rightanswer = {rightanswer}")
+#    window['-FEEDBACK2-'].update(f"I got event {event}, rightanswer = {rightanswer}")
     if responsenumber == rightanswer:
       if not attempted[itemnumber]:
         gotthemright[itemnumber] = True
