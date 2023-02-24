@@ -15,6 +15,8 @@ infile = args.infile.name
 oldwd = os.getcwd()
 
 CARDSPERPAGE = 6
+FRONTFONTS1 = 'Georgia, Times New Roman, serif'
+REARFONTS1 = 'Calibri, Arial, Helvetica, sans-serif'
 
 with open(infile,encoding='utf-8') as f:
   flashcards = json.load(f)
@@ -39,7 +41,7 @@ while(len(frontsides) > 0):
   with open(f"page{pagenum:04}-0.svg","w",encoding='utf-8') as f:
     print(f"""
 <svg width="816px" height="1104px" viewBox="0 0 816 1104">
-  <g dominant-baseline="middle" fill="darkred" font-size="300%" text-anchor="middle" font-family="Georgia, Times New Roman, serif">
+  <g dominant-baseline="middle" fill="darkred" font-size="300%" text-anchor="middle" font-family="{REARFONTS1}">
     <text x="25%" y="16%">{frontsides[0]}</text>    
     <text x="75%" y="16%">{frontsides[1]}</text>    
     <text x="25%" y="50%">{frontsides[2]}</text>    
@@ -54,7 +56,7 @@ while(len(frontsides) > 0):
   with open(f"page{pagenum:04}-1.svg","w",encoding='utf-8') as f:
     print(f"""
 <svg width="816px" height="1104px" viewBox="0 0 816 1104">
-  <g dominant-baseline="middle" fill="darkblue" font-size="300%" text-anchor="middle" font-family="Calibri, Arial, Helvetica, sans-serif">
+  <g dominant-baseline="middle" fill="darkblue" font-size="300%" text-anchor="middle" font-family="{FRONTFONTS1}">
     <text x="25%" y="16%">{flashcards[frontsides[1]]}</text>    
     <text x="75%" y="16%">{flashcards[frontsides[0]]}</text>    
     <text x="25%" y="50%">{flashcards[frontsides[3]]}</text>    
