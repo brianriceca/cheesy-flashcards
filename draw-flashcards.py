@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 
 import json
-import copy
 import sys
 import os
 import argparse
+import subprocess
+import glob
 
 parser = argparse.ArgumentParser()
 parser.add_argument('infile',type=argparse.FileType('r', encoding='latin-1'))
@@ -66,10 +67,31 @@ while(len(frontsides) > 0):
   </g>
 </svg>
   """,file=f)
-  os.system(f"inkscape --export-filename=page{pagenum:04}-1.eps page{pagenum:04}-1.svg")
+  inkscape_result = subprocess.run(["inkscape", 
+                                    f"--export-filename=page{pagenum:04}-1.eps", 
+                                    f"page{pagenum:04}-1.svg"], stdout=subprocess.DEVNULL,check=True)
 
+
+  print(f"wrote the sides of page {pagenum}")
   pagenum += 1
   del frontsides[:CARDSPERPAGE]
 
-os.system(f"gs -sDEVICE=pdfwrite -dNOPAUSE -dBATCH -dSAFER -dCenterPages=true -sOutputFile={newbasename}.pdf *.eps")
+print("now writing pdf")
+svgfiles = glob.glob("*.eps")
+n = len(svgfiles)
+print(f"I found {n} sides")
+if n>0:
+  ghostscript_result = subprocess.run(["gs", 
+                                     "-sDEVICE=pdfwrite", 
+                                     "-dNOPAUSE", 
+                                     "-dBATCH", 
+                                     "-dSAFER", 
+                                     "-dCenterPages=true", 
+                                     f"-sOutputFile={newbasename}.pdf", 
+                                     *svgfiles], 
+                                    stdout=subprocess.DEVNULL,check=True)
+
+  print("done")
+else:
+  print("giving up")
 os.chdir(oldwd)
