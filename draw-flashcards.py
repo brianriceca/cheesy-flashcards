@@ -6,6 +6,8 @@ import os
 import argparse
 import subprocess
 import glob
+import copy
+
 from textwrap import wrap
 
 parser = argparse.ArgumentParser()
@@ -14,7 +16,6 @@ parser.add_argument('infile',type=argparse.FileType('r', encoding='latin-1'))
 args = parser.parse_args()
 infile = args.infile.name
 
-oldwd = os.getcwd()
 
 ROWSPERPAGE = 3
 COLSPERPAGE = 2
@@ -22,6 +23,8 @@ CARDSPERPAGE = ROWSPERPAGE * COLSPERPAGE
 QUESTIONFONTS1 = 'Georgia, Times New Roman, serif'
 ANSWERFONTS1 = 'Calibri, Arial, Helvetica, sans-serif'
 FONTSIZE="250"
+FRONT=0
+BACK=1
 
 #####################
 
@@ -67,6 +70,7 @@ if (leftovers := len(cardlist) % CARDSPERPAGE):
   for i in range(CARDSPERPAGE-leftovers):
     cardlist.append( (f"bogus{i}", str(i) ) )
 
+oldwd = os.getcwd()
 newbasename = infile.replace('.json','')
 os.mkdir(newbasename, mode=0o755)
 os.chdir(newbasename)
@@ -75,7 +79,6 @@ pagenum = 0
 firstcardonpage = 1
 
 while(len(cardlist) > 0):
-  for side in range(1):
 
 ################################################################
 # 
@@ -90,15 +93,17 @@ while(len(cardlist) > 0):
 
   pagecontents = []
   for card in range(CARDSPERPAGE):
-    wrapped.append(wrap(frontsides[card],width=20))
-    if len(wrapped[card]) == 1:
-      wrapped[card].append(wrapped[card][0])
-      wrapped[card].append('')
-      wrapped[card][0] = ''
-    elif len(wrapped[card]) == 2:
-      wrapped[card].append('')
+    pagecontents.append(wrap(cardlist[card][FRONT],width=20))
+    if len(pagecontents[card]) == 1:
+      pagecontents[card].append(pagecontents[card][0])
+      pagecontents[card].append('')
+      pagecontents[card][0] = ''
+    elif len(pagecontents[card]) == 2:
+      pagecontents[card].append('')
+    else:
+      pass # we just ignore lines in excess of 3 for now
     
-  writepage(pagecontents,pagenum,startingcardnum,0)
+  writepage(pagecontents,pagenum,firstcardonpage,FRONT)
 
 ################################################################
 # 
@@ -106,14 +111,28 @@ while(len(cardlist) > 0):
 # 
 ################################################################
 
-# TODO reverse each row of pagecontents
+  pagecontents = []
+  for card in range(CARDSPERPAGE):
+    pagecontents.append(wrap(cardlist[card][BACK],width=20))
+    if len(pagecontents[card]) == 1:
+      pagecontents[card].append(pagecontents[card][0])
+      pagecontents[card].append('')
+      pagecontents[card][0] = ''
+    elif len(pagecontents[card]) == 2:
+      pagecontents[card].append('')
+    else:
+      pass # we just ignore lines in excess of 3 for now
+    
+  flippedpagecontents = []
+  for row in pagecontents:
+    newrow = copy.copy(pagecontents[row])
+    flippedpagecontents.append(reversed(newrow))
 
-  writepage(flippedpagecontents,pagenum,startingcardnum)
-  writepage(pagecontents,pagenum,startingcardnum,1)
+  writepage(pagecontents,pagenum,firstcardonpage,BACK)
 
   print(f"wrote the sides of page {pagenum}")
   pagenum += 1
-  startingcardnum += CARDSPERPAGE
+  firstcardonpage += CARDSPERPAGE
   del frontsides[:CARDSPERPAGE]
 
 ################################################################
