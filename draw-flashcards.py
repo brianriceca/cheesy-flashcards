@@ -40,13 +40,15 @@ def writepage(cardcontents,pagenum,startingcardnum,side):
 <svg width="816px" height="1104px" viewBox="0 0 816 1104"> <g dominant-baseline="middle" fill="darkred" font-size="{FONTSIZE}%" text-anchor="middle" font-family="{ANSWERFONTS1}">
 """,file=f)
 
+    whichcard = 0
     for row in range(ROWSPERPAGE):
       for col in range(COLSPERPAGE):
         thisx, thisy = cardcenter(row,col)
         for chunk,offset in enumerate([-6,0,+8]):
           print(f"""
-<text x="{thisx}%" y="{thisy+offset}%" {cardcontents[row][col][chunk]}</text>    
+<text x="{thisx}%" y="{thisy+offset}%">{cardcontents[whichcard][chunk]}</text>    
 """,file=f)
+        whichcard += 1
 
     print(f"""
   </g>
@@ -72,8 +74,9 @@ if (leftovers := len(cardlist) % CARDSPERPAGE):
 
 oldwd = os.getcwd()
 newbasename = infile.replace('.json','')
-os.mkdir(newbasename, mode=0o755)
-os.chdir(newbasename)
+scratchdirname = newbasename + str(os.getpid())
+os.mkdir(scratchdirname, mode=0o755)
+os.chdir(scratchdirname)
 
 pagenum = 0
 firstcardonpage = 1
@@ -85,11 +88,6 @@ while(len(cardlist) > 0):
 # now we write a questions side
 # 
 ################################################################
-
-# let's wrap all the text on the page
-
-# TODO change this so that it populates pagecontents with a data structure
-# suitable for passing to writepage()
 
   pagecontents = []
   for card in range(CARDSPERPAGE):
@@ -125,7 +123,7 @@ while(len(cardlist) > 0):
     
   flippedpagecontents = []
   for row in pagecontents:
-    newrow = copy.copy(pagecontents[row])
+    newrow = copy.copy(row)
     flippedpagecontents.append(reversed(newrow))
 
   writepage(pagecontents,pagenum,firstcardonpage,BACK)
@@ -133,7 +131,7 @@ while(len(cardlist) > 0):
   print(f"wrote the sides of page {pagenum}")
   pagenum += 1
   firstcardonpage += CARDSPERPAGE
-  del frontsides[:CARDSPERPAGE]
+  del cardlist[:CARDSPERPAGE]
 
 ################################################################
 # 
@@ -151,7 +149,7 @@ if n>0:
                                      "-dBATCH", 
                                      "-dSAFER", 
                                      "-dCenterPages=true", 
-                                     f"-sOutputFile={newbasename}.pdf", 
+                                     f"-sOutputFile={scratchdirname}.pdf", 
                                      *svgfiles], 
                                     stdout=subprocess.DEVNULL,check=True)
 
@@ -159,3 +157,5 @@ if n>0:
 else:
   print("giving up")
 os.chdir(oldwd)
+# os.rename(oldwd + f'/{newbasename}.pdf', f'/{newbasename}.pdf')
+# os.unlink(scratchdirname)
