@@ -31,52 +31,31 @@ def cardcenter(row,col):
 
 #####################
 
-def writepage(pagenum,cardcontents):
+def writepage(cardcontents,pagenum,startingcardnum,side):
   with open(f"page{pagenum:04}-0.svg","w",encoding='utf-8') as f:
     print(f"""
 <svg width="816px" height="1104px" viewBox="0 0 816 1104"> <g dominant-baseline="middle" fill="darkred" font-size="{FONTSIZE}%" text-anchor="middle" font-family="{ANSWERFONTS1}">
 """,file=f)
 
-  for row in range(ROWSPERPAGE):
-    for col in range(COLSPERPAGE):
-      thisx, thisy = cardcenter(row,col)
-      print(f"""
-### TODO start refactoring here. Need to address the cards on a page as 
-###      cardcontents[row][col][chunk]
+    for row in range(ROWSPERPAGE):
+      for col in range(COLSPERPAGE):
+        thisx, thisy = cardcenter(row,col)
+        for chunk,offset in enumerate([-6,0,+8]):
+          print(f"""
+<text x="{thisx}%" y="{thisy+offset}%" {cardcontents[row][col][chunk]}</text>    
+""",file=f)
 
-    <text x="{thisx}%" y="{thisy-UPINCREMENT}%" {cardcontents[0][0]}</text>    
-    <text x="25%" y="19%">{wrapped[0][1]}</text>    
-    <text x="25%" y="21%">{wrapped[0][2]}</text>    
-
-    <text x="75%" y="12%">{wrapped[1][0]}</text>    
-    <text x="75%" y="19%">{wrapped[1][1]}</text>    
-    <text x="75%" y="21%">{wrapped[1][2]}</text>    
-
-    <text x="25%" y="46%">{wrapped[2][0]}</text>    
-    <text x="25%" y="50%">{wrapped[2][1]}</text>    
-    <text x="25%" y="56%">{wrapped[2][2]}</text>    
-
-    <text x="75%" y="46%">{wrapped[3][0]}</text>    
-    <text x="75%" y="50%">{wrapped[3][1]}</text>    
-    <text x="75%" y="56%">{wrapped[3][2]}</text>    
-
-    <text x="25%" y="80%">{wrapped[4][0]}</text>    
-    <text x="25%" y="84%">{wrapped[4][1]}</text>    
-    <text x="25%" y="90%">{wrapped[4][2]}</text>    
-
-    <text x="75%" y="80%">{wrapped[5][0]}</text>    
-    <text x="75%" y="84%">{wrapped[5][1]}</text>    
-    <text x="75%" y="90%">{wrapped[5][2]}</text>    
-
+    print(f"""
   </g>
 </svg>
 """,file=f)
 
   os.system(f"inkscape --export-filename=page{pagenum:04}-0.eps page{pagenum:04}-0.svg")
 
+#####################
+
 with open(infile,encoding='utf-8') as f:
   flashcards = json.load(f)
-
 if not infile.endswith('.json'):
   raise RuntimeError("gotta end in .json")
 
@@ -87,13 +66,13 @@ cardlist = list(flashcards.items())
 if (leftovers := len(cardlist) % CARDSPERPAGE):
   for i in range(CARDSPERPAGE-leftovers):
     cardlist.append( (f"bogus{i}", str(i) ) )
-textlist = []
 
 newbasename = infile.replace('.json','')
 os.mkdir(newbasename, mode=0o755)
 os.chdir(newbasename)
 
 pagenum = 0
+firstcardonpage = 1
 
 while(len(cardlist) > 0):
   for side in range(1):
@@ -106,7 +85,10 @@ while(len(cardlist) > 0):
 
 # let's wrap all the text on the page
 
-  wrapped = []
+# TODO change this so that it populates pagecontents with a data structure
+# suitable for passing to writepage()
+
+  pagecontents = []
   for card in range(CARDSPERPAGE):
     wrapped.append(wrap(frontsides[card],width=20))
     if len(wrapped[card]) == 1:
@@ -116,39 +98,7 @@ while(len(cardlist) > 0):
     elif len(wrapped[card]) == 2:
       wrapped[card].append('')
     
-  with open(f"page{pagenum:04}-0.svg","w",encoding='utf-8') as f:
-    print(f"""
-<svg width="816px" height="1104px" viewBox="0 0 816 1104"> <g dominant-baseline="middle" fill="darkred" font-size="250%" text-anchor="middle" font-family="{ANSWERFONTS1}">
-
-    <text x="25%" y="12%">{wrapped[0][0]}</text>    
-    <text x="25%" y="19%">{wrapped[0][1]}</text>    
-    <text x="25%" y="21%">{wrapped[0][2]}</text>    
-
-    <text x="75%" y="12%">{wrapped[1][0]}</text>    
-    <text x="75%" y="19%">{wrapped[1][1]}</text>    
-    <text x="75%" y="21%">{wrapped[1][2]}</text>    
-
-    <text x="25%" y="46%">{wrapped[2][0]}</text>    
-    <text x="25%" y="50%">{wrapped[2][1]}</text>    
-    <text x="25%" y="56%">{wrapped[2][2]}</text>    
-
-    <text x="75%" y="46%">{wrapped[3][0]}</text>    
-    <text x="75%" y="50%">{wrapped[3][1]}</text>    
-    <text x="75%" y="56%">{wrapped[3][2]}</text>    
-
-    <text x="25%" y="80%">{wrapped[4][0]}</text>    
-    <text x="25%" y="84%">{wrapped[4][1]}</text>    
-    <text x="25%" y="90%">{wrapped[4][2]}</text>    
-
-    <text x="75%" y="80%">{wrapped[5][0]}</text>    
-    <text x="75%" y="84%">{wrapped[5][1]}</text>    
-    <text x="75%" y="90%">{wrapped[5][2]}</text>    
-
-  </g>
-</svg>
-""",file=f)
-
-  os.system(f"inkscape --export-filename=page{pagenum:04}-0.eps page{pagenum:04}-0.svg")
+  writepage(pagecontents,pagenum,startingcardnum,0)
 
 ################################################################
 # 
@@ -156,26 +106,14 @@ while(len(cardlist) > 0):
 # 
 ################################################################
 
-  with open(f"page{pagenum:04}-0.svg","w",encoding='utf-8') as f:
-    print(f"""
-<svg width="816px" height="1104px" viewBox="0 0 816 1104">
-  <g dominant-baseline="middle" fill="darkblue" font-size="300%" text-anchor="middle" font-family="{QUESTIONFONTS1}">
-    <text x="25%" y="16%">{flashcards[frontsides[1]]}</text>    
-    <text x="75%" y="16%">{flashcards[frontsides[0]]}</text>    
-    <text x="25%" y="50%">{flashcards[frontsides[3]]}</text>    
-    <text x="75%" y="50%">{flashcards[frontsides[2]]}</text>    
-    <text x="25%" y="84%">{flashcards[frontsides[5]]}</text>    
-    <text x="75%" y="84%">{flashcards[frontsides[4]]}</text>    
-  </g>
-</svg>
-""",file=f)
-  inkscape_result = subprocess.run(["inkscape", 
-                                    f"--export-filename=page{pagenum:04}-1.eps", 
-                                    f"page{pagenum:04}-1.svg"], stdout=subprocess.DEVNULL,check=True)
+# TODO reverse each row of pagecontents
 
+  writepage(flippedpagecontents,pagenum,startingcardnum)
+  writepage(pagecontents,pagenum,startingcardnum,1)
 
   print(f"wrote the sides of page {pagenum}")
   pagenum += 1
+  startingcardnum += CARDSPERPAGE
   del frontsides[:CARDSPERPAGE]
 
 ################################################################
