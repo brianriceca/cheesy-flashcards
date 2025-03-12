@@ -28,22 +28,31 @@ BACK=1
 
 #####################
 
-def cardcenter(row,col):
-  return ( int(100 * col / COLSPERPAGE) + int(100/(COLSPERPAGE*2)),
-           int(100 * row / ROWSPERPAGE) + int(100/(ROWSPERPAGE*2)) )
+def cardcenter(row,col,side):
+  if side == FRONT:
+    return ( int(100 * col / COLSPERPAGE) + int(100/(COLSPERPAGE*2)),
+             int(100 * row / ROWSPERPAGE) + int(100/(ROWSPERPAGE*2)) )
+  else:
+    return ( int(100 * col / COLSPERPAGE) + int(100/(COLSPERPAGE*2)),
+             100 - (int(100 * row / ROWSPERPAGE) + int(100/(ROWSPERPAGE*2))) )
 
 #####################
 
 def writepage(cardcontents,pagenum,startingcardnum,side):
-  with open(f"page{pagenum:04}-0.svg","w",encoding='utf-8') as f:
-    print(f"""
-<svg width="816px" height="1104px" viewBox="0 0 816 1104"> <g dominant-baseline="middle" fill="darkred" font-size="{FONTSIZE}%" text-anchor="middle" font-family="{ANSWERFONTS1}">
+  with open(f"page{pagenum:04}-side{side}.svg","w",encoding='utf-8') as f:
+    if side == 0:
+      print(f"""
+<svg width="816px" height="1104px" viewBox="0 0 816 1104"> <g dominant-baseline="middle" fill="darkred" font-size="{FONTSIZE}%" text-anchor="middle" font-family="{QUESTIONFONTS1}">
+""",file=f)
+    else:
+      print(f"""
+<svg width="816px" height="1104px" viewBox="0 0 816 1104"> <g dominant-baseline="middle" fill="darkblue" font-size="{FONTSIZE}%" text-anchor="middle" font-family="{ANSWERFONTS1}">
 """,file=f)
 
     whichcard = 0
     for row in range(ROWSPERPAGE):
       for col in range(COLSPERPAGE):
-        thisx, thisy = cardcenter(row,col)
+        thisx, thisy = cardcenter(row,col,side)
         for chunk,offset in enumerate([-6,0,+8]):
           print(f"""
 <text x="{thisx}%" y="{thisy+offset}%">{cardcontents[whichcard][chunk]}</text>    
@@ -55,7 +64,7 @@ def writepage(cardcontents,pagenum,startingcardnum,side):
 </svg>
 """,file=f)
 
-  os.system(f"inkscape --export-filename=page{pagenum:04}-0.eps page{pagenum:04}-0.svg")
+  os.system(f"inkscape --export-filename=page{pagenum:04}-side{side}.eps page{pagenum:04}-side{side}.svg")
 
 #####################
 
@@ -121,11 +130,6 @@ while(len(cardlist) > 0):
     else:
       pass # we just ignore lines in excess of 3 for now
     
-  flippedpagecontents = []
-  for row in pagecontents:
-    newrow = copy.copy(row)
-    flippedpagecontents.append(reversed(newrow))
-
   writepage(pagecontents,pagenum,firstcardonpage,BACK)
 
   print(f"wrote the sides of page {pagenum}")
@@ -139,8 +143,8 @@ while(len(cardlist) > 0):
 # 
 ################################################################
 
-svgfiles = glob.glob("*.eps")
-n = len(svgfiles)
+epsfiles = glob.glob("*.eps")
+n = len(epsfiles)
 print(f"I found {n} sides")
 if n>0:
   ghostscript_result = subprocess.run(["gs", 
@@ -150,7 +154,7 @@ if n>0:
                                      "-dSAFER", 
                                      "-dCenterPages=true", 
                                      f"-sOutputFile={scratchdirname}.pdf", 
-                                     *svgfiles], 
+                                     *epsfiles], 
                                     stdout=subprocess.DEVNULL,check=True)
 
   print("done")
