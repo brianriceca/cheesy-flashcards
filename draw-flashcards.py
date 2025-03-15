@@ -16,12 +16,11 @@ parser.add_argument('infile',type=argparse.FileType('r', encoding='latin-1'))
 args = parser.parse_args()
 infile = args.infile.name
 
-
 ROWSPERPAGE = 3
 COLSPERPAGE = 2
 CARDSPERPAGE = ROWSPERPAGE * COLSPERPAGE
-QUESTIONFONTS1 = 'Georgia, Times New Roman, serif'
-ANSWERFONTS1 = 'Calibri, Arial, Helvetica, sans-serif'
+FONTS = ['Georgia, Times New Roman, serif', 'Calibri, Arial, Helvetica, sans-serif']
+COLORS = ['darkred', 'darkblue']
 FONTSIZE="250"
 FRONT=0
 BACK=1
@@ -40,13 +39,8 @@ def cardcenter(row,col,side):
 
 def writepage(cardcontents,pagenum,startingcardnum,side):
   with open(f"page{pagenum:04}-side{side}.svg","w",encoding='utf-8') as f:
-    if side == 0:
-      print(f"""
-<svg width="816px" height="1104px" viewBox="0 0 816 1104"> <g dominant-baseline="middle" fill="darkred" font-size="{FONTSIZE}%" text-anchor="middle" font-family="{QUESTIONFONTS1}">
-""",file=f)
-    else:
-      print(f"""
-<svg width="816px" height="1104px" viewBox="0 0 816 1104"> <g dominant-baseline="middle" fill="darkblue" font-size="{FONTSIZE}%" text-anchor="middle" font-family="{ANSWERFONTS1}">
+     print(f"""
+<svg width="816px" height="1104px" viewBox="0 0 816 1104"> <g dominant-baseline="middle" fill="COLORS[side]" font-size="{FONTSIZE}%" text-anchor="middle" font-family="{FONTS[side]}">
 """,file=f)
 
     whichcard = 0
