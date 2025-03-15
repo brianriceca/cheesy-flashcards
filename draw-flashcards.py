@@ -29,25 +29,25 @@ BACK=1
 
 def cardcenter(row,col,side):
   if side == FRONT:
-    return ( int(100 * col / COLSPERPAGE) + int(100/(COLSPERPAGE*2)),
+    return ( 100 - (int(100 * col / COLSPERPAGE) + int(100/(COLSPERPAGE*2))),
              int(100 * row / ROWSPERPAGE) + int(100/(ROWSPERPAGE*2)) )
   else:
-    return ( int(100 * col / COLSPERPAGE) + int(100/(COLSPERPAGE*2)),
-             100 - (int(100 * row / ROWSPERPAGE) + int(100/(ROWSPERPAGE*2))) )
+    return ( 100 - (int(100 * col / COLSPERPAGE) + int(100/(COLSPERPAGE*2))),
+             int(100 * row / ROWSPERPAGE) + int(100/(ROWSPERPAGE*2)) )
 
 #####################
 
 def writepage(cardcontents,pagenum,startingcardnum,side):
   with open(f"page{pagenum:04}-side{side}.svg","w",encoding='utf-8') as f:
-     print(f"""
-<svg width="816px" height="1104px" viewBox="0 0 816 1104"> <g dominant-baseline="middle" fill="COLORS[side]" font-size="{FONTSIZE}%" text-anchor="middle" font-family="{FONTS[side]}">
+    print(f"""
+<svg width="816px" height="1104px" viewBox="0 0 816 1104"> <g dominant-baseline="middle" fill="{COLORS[side]}" font-size="{FONTSIZE}%" text-anchor="middle" font-family="{FONTS[side]}">
 """,file=f)
 
     whichcard = 0
     for row in range(ROWSPERPAGE):
       for col in range(COLSPERPAGE):
         thisx, thisy = cardcenter(row,col,side)
-        for chunk,offset in enumerate([-6,0,+8]):
+        for chunk,offset in enumerate([-4,0,+4]):
           print(f"""
 <text x="{thisx}%" y="{thisy+offset}%">{cardcontents[whichcard][chunk]}</text>    
 """,file=f)
