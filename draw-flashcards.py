@@ -32,8 +32,20 @@ def cardcenter(row,col,side):
     return ( 100 - (int(100 * col / COLSPERPAGE) + int(100/(COLSPERPAGE*2))),
              int(100 * row / ROWSPERPAGE) + int(100/(ROWSPERPAGE*2)) )
   else:
-    return ( 100 - (int(100 * col / COLSPERPAGE) + int(100/(COLSPERPAGE*2))),
+    return (int(100 * col / COLSPERPAGE) + int(100/(COLSPERPAGE*2)),
              int(100 * row / ROWSPERPAGE) + int(100/(ROWSPERPAGE*2)) )
+
+#####################
+
+#####################
+
+def cardnumberloc(row,col,side):
+  if side == FRONT:
+    return ( 100 - (int(100 * col / COLSPERPAGE) + 5,
+             int(100 * row / ROWSPERPAGE) + 5 )
+  else:
+    return ( int(100 * col / COLSPERPAGE) + 5,
+             int(100 * row / ROWSPERPAGE) + 5 )
 
 #####################
 
