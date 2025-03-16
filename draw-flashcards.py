@@ -41,7 +41,7 @@ def cardcenter(row,col,side):
 
 def cardnumberloc(row,col,side):
   if side == FRONT:
-    return ( 100 - (int(100 * col / COLSPERPAGE) + 5,
+    return ( 100 - (int(100 * col / COLSPERPAGE) + 5),
              int(100 * row / ROWSPERPAGE) + 5 )
   else:
     return ( int(100 * col / COLSPERPAGE) + 5,
